@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/haxpor/wxbotserv#readme",
   "dependencies": {
-    "jsdom": "^11.3.0",
     "phantom": "^4.0.8",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5"
