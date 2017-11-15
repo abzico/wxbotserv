@@ -23,8 +23,7 @@ var _ = {
 			method: 'POST',
 			uri: process.env.SLACK_WEBHOOK_URL,
 			headers: {
-				'Content-Type': 'application/json',
-				'Connection': 'Keep-Alive'
+				'Content-Type': 'application/json'
 			},
 			body: {
 				'channel': 'server-notifier',
