@@ -7,16 +7,19 @@ var _ = {
  * @return {[type]}          [description]
  */
 processMsgs: function(headless) {
+
 	// check normal new msg
 	wxMediator.checkNewMsg(headless)
 		.then((newMsgs) => {
 			if (newMsgs != 0) {
 				console.log(`found (${newMsgs}) new messages`);
 
-				// process the message
+				// get latest N messgaes
 				wxMediator.getLatestNMsg(headless, newMsgs)
 					.then((res) => {
-						console.log('got msgs: ' + res);
+						console.log('got msgs: ', res);
+
+						// process messages
 					})
 					.catch((err) => {
 						console.log(err);
@@ -35,16 +38,25 @@ processMsgs: function(headless) {
 			}
 		})
 		.catch((err) => { 
-			console.log(err); 
+			console.log(err);
 		});
 
 	// check muted new msg
 	wxMediator.checkNewMutedMsg(headless)
 		.then((found) => {
 			if (found) {
-				console.log('found new message');
+				console.log('found new message on muted convo');
 
-				// process message
+				// get latest N messgaes
+				wxMediator.getLatestNMsg(headless, 1)
+					.then((res) => {
+						console.log('got msgs: ', res);
+
+						// process messages
+					})
+					.catch((err) => {
+						console.log(err);
+					});
 
 				// click on filehelper to allow us to detect new msgs again
 				wxMediator.clickOnFilehelper(headless)

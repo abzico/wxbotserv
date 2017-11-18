@@ -65,10 +65,10 @@ var _ = {
 	 * Get latest N message from clicked conversation of target user/group chat.
 	 * If N is greater than number of messages, then it will return all the messages, otherwise it will return only latest N messages.
 	 *
-	 * In case of there's error in parsing message or its context, that message will be skipped.
+	 * In case of there's error in parsing message or its context, that message will be skipped. At the end no matter what, it will return result array of messages.
 	 * @param  {Object} headless Headless object
 	 * @param {Number} n Number of message to get
-	 * @return {Object}          	Promise object.
+	 * @return {Object}          	Promise object. Success will return array of messages.
 	 */
 	getLatestNMsg: function(headless, n) {
 		// supp;y n as parameter into evaluate function
@@ -78,7 +78,7 @@ var _ = {
 
 			// if there's no message
 			if (msgDivs.length <= 0) {
-				return JSON.stringify([]);
+				return [];
 			}
 
 			// check to slice msgDivs
@@ -140,106 +140,8 @@ var _ = {
 				}
 			}
 
-			return JSON.stringify(retMsgs);
+			return retMsgs;
 		}, n);
-	},
-
-	/**
-	 * Detect whether there's a new message or not for unmuted chat.
-	 * @param  {Object} headless headless browser object
-	 * @return {Object}          Promise object
-	 */
-	detectMsg: function(headless) {
-		if (headless.page) {
-			return new Promise((resolve, reject) => {
-				headless.page.evaluate(function() {
-					var elem = document.querySelector('.icon.web_wechat_reddot_middle');
-					if (elem == null) {
-						//return { err: new Error('not found'), result: null };
-						return 1;
-					}
-					else {
-						// get number of messages
-						var numberOfNewMsgs = elem.innerText || elem.textContent;
-						// click on such convo
-						elem.click();
-
-						// now convo is clicked, messages are added into DOM
-						// extract all message-div in conversation
-						var msgDivs = document.querySelectorAll('div.ng-scope[ng-repeat="message in chatContent"] .bubble.js_message_bubble.bubble_default.left');
-						if (msgDivs.length == 0) {
-							// click on filehelper (File Transfer) user
-							var item = document.querySelector('div.chat_item.slide-left[data-username="filehelper"]');
-							if (item) item.click();
-							// -- end section to click on file transfer
-
-							//return { err: new Error('not found'), result: null };
-							return 2;
-						}
-						else {
-							// result object to return
-							var ret = { context: null, text: null };
-							// extract last message-div in conversation
-							var msgDiv = msgDivs[msgDivs.length - 1];
-
-							// extract message context
-							var contextJsonStr = elem.getAttribute('data-cm');
-							if (contextJsonStr == null || contextJsonStr == '') {
-								// click on filehelper (File Transfer) user
-								var item = document.querySelector('div.chat_item.slide-left[data-username="filehelper"]');
-								if (item) item.click();
-								// -- end section to click on file transfer
-
-								//return { err: new Error('message\'s context is null or invalid.'), result: null };
-								return 3;
-							}
-							else {
-								try {
-									// get message context object
-									var msgContext = JSON.parse(contextJsonStr);
-									// save as property in result object
-									ret.context = msgContext;
-								}
-								catch(e) { 
-									// click on filehelper (File Transfer) user
-									var item = document.querySelector('div.chat_item.slide-left[data-username="filehelper"]');
-									if (item) item.click();
-									// -- end section to click on file transfer
-
-									//return { err: new Error('cannot do JSON-parsing for message\'s context'), result: null };
-									return 4;
-								}
-							}
-
-							// extract actual text message
-							var msgElem = msgDiv.querySelector('pre.js_message_plain');
-							// save text as result
-							if (msgElem) ret.text = msg.innerText || msg.textContent;
-
-							// return result
-							//return { err: null, result: ret };
-							return JSON.stringify(ret);
-						}
-					}
-				}).then((res) => {
-					console.log(res);
-
-					if (res) {
-						resolve(JSON.parse(res));
-					}
-					else {
-						reject(new Error('not found or error occur'));
-					}
-				})
-				.catch((err) => {
-					reject(err);
-				});
-			})
-		}
-		else {
-			// if not then reject right away
-			Promise.reject(new Error('headless\'s page property cannot be null.'));
-		}
 	}
 };
 
