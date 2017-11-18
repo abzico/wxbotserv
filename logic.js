@@ -48,6 +48,8 @@ processMsgs: function(headless) {
 				console.log('found new message on muted convo');
 
 				// get latest N messgaes
+				// we fixed it at 1 message as we dont keep track of latest message received for now
+				// in case for muted convo
 				wxMediator.getLatestNMsg(headless, 1)
 					.then((res) => {
 						console.log('got msgs: ', res);
