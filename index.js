@@ -38,11 +38,12 @@ headless.openURL('https://wx.qq.com', {
 		console.log('Requesting: ',requestData.url);
 
 		// check if such url is qrcode image
-		if (/https\:\/\/login.weixin\.qq\.com\/qrcode(.+?)/.test(requestData.url)) {
+		if (/https\:\/\/login.weixin\.qq\.com\/qrcode\/(?:.+?)/.test(requestData.url)) {
 
 			// notify via slack if SLACK_WEBHOOK_URL is set
 			// if not set, then ignore
 			if (process.env.SLACK_WEBHOOK_URL != null) {
+				console.log('sending msg to slack');
 				// notify via slack
 				slackNotify.sendMsg(requestData.url, process.env.SLACK_WEBHOOK_URL)
 					.then((res) => {

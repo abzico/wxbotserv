@@ -15,7 +15,6 @@ var _ = {
 		if (slackWebhookUrl == null || slackWebhookUrl == "")
 			return Promise.reject(new Error('Slack\'s webhook url cannot be null or empty'));
 
-		console.log('sending msg to slack');
 		console.log(qrcodeImageUrl);
 
 		// create options to send a request
