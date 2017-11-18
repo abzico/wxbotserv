@@ -1,3 +1,4 @@
+require('../promise-retry.js');
 const phantom = require('phantom');
 let _ph, _page;
 
@@ -41,7 +42,10 @@ var _ = {
 					_ph = ph;
 					this.instance = _ph;
 					return _ph.createPage();
+				}, (err) => {
+					reject(err);
 				})
+
 				.then((page) => {
 					_page = page;
 					this.page = _page;
@@ -50,13 +54,15 @@ var _ = {
 					setupEventListeners(options);
 
 					return _page.open(url);
+				}, (err) => {
+					reject(err);
 				})
+
 				.then((status) => {
-					return resolve(_page.property('content'));
+					resolve(_page.property('content'));
+				}, (err) => {
+					reject(err);
 				})
-				.catch((err) => {
-					return reject(err);
-				});
 		});
 	},
 
@@ -64,12 +70,9 @@ var _ = {
 	 * Clear resource
 	 */
 	clear: function() {
-		if (_page) {
-			_page.evaluate(function() {
-				localStorage.clear();
-			});
+		if (_ph) {
+			_ph.exit();
 		}
-		if (_ph) _ph.exit();
 	}
 };
 
