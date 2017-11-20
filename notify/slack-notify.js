@@ -1,4 +1,5 @@
 const req = require('request-promise-native');
+const logger = require('../log/logger.js');
 
 var _ = {
 	/**
@@ -15,7 +16,7 @@ var _ = {
 		if (slackWebhookUrl == null || slackWebhookUrl == "")
 			return Promise.reject(new Error('Slack\'s webhook url cannot be null or empty'));
 
-		console.log(qrcodeImageUrl);
+		logger.log(qrcodeImageUrl);
 
 		// create options to send a request
 		var options = {
