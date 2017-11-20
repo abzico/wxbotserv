@@ -1,24 +1,47 @@
+
 var _ = {
 
 	/**
 	 * Check if there's any new message, and also click on that conversation with target user/group chat associated with this new message.
 	 * @param  {Object}  headless Headless Object
-	 * @return {Object}           Promise object. If new message is found, then result will contain number of new message, otherwise return 0.
+	 * @param {Boolean} markAsPreviousItem Whether to mark as previous item. Default is false.
+	 * @return {Object}           Promise object. If new message is found, then result will contain number of new message, otherwise return false.
 	 */
-	checkNewMsg: function(headless) {
-		return headless.page.evaluate(function() {
+	checkNewMsgAndClickOnIt: function(headless, markAsPreviousItem=false) {
+		return headless.page.evaluate(function(markAsPreviousItem) {
 			var elem = document.querySelector('.icon.web_wechat_reddot_middle');
 			if (elem == null) {
-				return null;
+				return false;
 			}
 			else {
-				// click on conversation of target user/group chat associated with this new messages
-				elem.click();
-				// return number of new messages
-				var newMsgs = elem.innerText || elem.textContent;
-				return parseInt(newMsgs);
+				// we're interested in its parent node
+				if (elem.parentElement == null) {
+					return false;
+				}
+				else {
+					// get number of new messages first
+					var newMsgs = elem.innerText || elem.textContent;
+
+					// get parent element
+					// note: we need to get parent element because we need to set attribute to mark as previous item at this level, and works as tested to be able to click on it
+					var parentElem = elem.parentElement;
+
+					// click on conversation of target user/group chat associated with this new messages
+					parentElem.click();
+					// need to mark as previous item or not
+					if (markAsPreviousItem) {
+						parentElem.setAttribute('data-wxbotserv-previousitem-id', "1");
+					}
+					else {
+						if (item.hasAttribute('data-wxbotserv-previousitem-id')) {
+							parentElem.setAttribute('data-wxbotserv-previousitem-id', "0");
+						}
+					}
+					// return with number of new messages
+					return parseInt(newMsgs);
+				}
 			}
-		});
+		}, markAsPreviousItem);
 	},
 
 	/**
@@ -27,30 +50,118 @@ var _ = {
 	 * Please note that we didn't keep track of latest message received at the moment, thus for muted conversation you can't know number of new messages received.
 	 * 
 	 * @param  {Object} headless Headless object
-	 * @return {Object}          Promise object. If new message is found, then result will return true, otherwise return false.
+	 * @param {Boolean} markAsPreviousItem Whether to mark as previous item. Default is false.
+	 * @return {Object}          Promise object. If new message is found, then result will return 1 indicating only new message to be processed, otherwise return false.
 	 */
-	checkNewMutedMsg: function(headless) {
-		return headless.page.evaluate(function() {
+	checkNewMutedMsg: function(headless, markAsPreviousItem=false) {
+		return headless.page.evaluate(function(markAsPreviousItem) {
 			var elem = document.querySelector('.icon.web_wechat_reddot');
 			if (elem == null) {
 				return false;
 			}
 			else {
-				// click on conversation of target user/group chat associated with this new messages
-				elem.click();
-				return true;
+				// we're interested in its parent node
+				if (elem.parentElement == null) {
+					return false;
+				}
+				else {
+					// get number of new messages first
+					var newMsgs = elem.innerText || elem.textContent;
+
+					// get parent element
+					// note: we need to get parent element because we need to set attribute to mark as previous item at this level, and works as tested to be able to click on it
+					var parentElem = elem.parentElement;
+
+					// click on conversation of target user/group chat associated with this new messages
+					parentElem.click();
+					// need to mark as previous item or not
+					if (markAsPreviousItem) {
+						parentElem.setAttribute('data-wxbotserv-previousitem-id', "1");
+					}
+					else {
+						if (item.hasAttribute('data-wxbotserv-previousitem-id')) {
+							parentElem.setAttribute('data-wxbotserv-previousitem-id', "0");
+						}
+					}
+					// return with number of new messages
+					return parseInt(newMsgs);
+				}
 			}
-		});
+		}, markAsPreviousItem);
 	},
 
 	/**
 	 * Click on filehelper user.
 	 * @param  {Object} headless Headless object.
+	 * @param {Boolean} markAsPreviousItem Whether to mark as previous item. Default is false.
 	 * @return {Object}          Promise object. When operation finishes, return true if it found such filehelper element and click on it, otherwise return false.
 	 */
-	clickOnFilehelper: function(headless) {
-		return headless.page.evaluate(function() {
+	clickOnFilehelper: function(headless, markAsPreviousItem=false) {
+		return headless.page.evaluate(function(markAsPreviousItem) {
 			var item = document.querySelector('div.chat_item.slide-left[data-username="filehelper"]');
+			if (item) {
+				item.click();
+				// need to mark as previous item or not
+				if (markAsPreviousItem) {
+					item.setAttribute('data-wxbotserv-previousitem-id', "1");
+				}
+				else {
+					if (item.hasAttribute('data-wxbotserv-previousitem-id')) {
+						item.setAttribute('data-wxbotserv-previousitem-id', "0");
+					}
+				}
+
+				return true;
+			}
+			else {
+				return false;
+			}
+		}, markAsPreviousItem);
+	},
+
+	/**
+	 * Click on last conversation with user.
+	 * @param  {Object} headless Headless object
+	 * @param {Boolean} markAsPreviousItem Whether to mark as previous item. Default is false.
+	 * @return {Object}          Promise object. Success contains true as result, otherwise failure contains false.
+	 */
+	clickOnLastConvoInDOM: function(headless, markAsPreviousItem=false) {
+		return headless.page.evaluate(function(markAsPreviousItem) {
+			var convoDivs = document.querySelectorAll('div.chat_item.slide-left');
+			if (convoDivs.length > 0 ) {
+				var lastDiv = convoDivs[convoDivs.length - 1];
+				lastDiv.click();
+
+				if (markAsPreviousItem) {
+					lastDiv.setAttribute('data-wxbotserv-previousitem-id', "1");
+				}
+				else {
+					if (lastDiv.hasAttribute('data-wxbotserv-previousitem-id')) {
+						lastDiv.setAttribute('data-wxbotserv-previousitem-id', "0");
+					}
+				}
+
+				return true;
+			}
+			else {
+				return false;
+			}
+		}, markAsPreviousItem);
+	},
+
+	/**
+	 * Click on convo item that is marked as previous item.
+	 *
+	 * If there's multiple of such marked item, it will only use the first one that found.
+	 *
+	 * @param  {Objct} headless Headless object.
+	 * @return {Object}          Promise object. Success will contain true if it successfully clicked on such item, otherwise it will contain false.
+	 */
+	clickOnItemMarkedAsPreviousItem: function(headless) {
+		return headless.page.evaluate(function() {
+			// as tested: need to click on its child 'div'
+			// click on parent div only works on file helper
+			var item = document.querySelector('[data-wxbotserv-previousitem-id="1"]');
 			if (item) {
 				item.click();
 				return true;
@@ -140,8 +251,52 @@ var _ = {
 				}
 			}
 
+			// it's ok to return as object (Array in this case)
 			return retMsgs;
 		}, n);
+	},
+
+	/**
+	 * Set reply message to current active conversation.
+	 * @param  {Object} headless Headless object
+	 * @param  {String} msg         Message to send to user
+	 * @return {Object}             Promise object. Success returns with boolean for resulf of operation. If there's any error during operation, it fails promise.
+	 */
+	setReplyMsg: function(headless, msg) {
+		// supply msg, and receiveUser as parameter
+		return headless.page.evaluate(function(msg) {
+			// add text into text area
+			var textAreaElem = document.querySelector('#editArea');
+			if (textAreaElem) {
+				textAreaElem.focus();
+				textAreaElem.innerHTML = msg;
+				textAreaElem.innerText = msg;
+				return true;
+			}
+			else {
+				return false;
+			}
+		}, msg);
+	},
+
+	/**
+	 * Click on send button to send current reply message.
+	 * @param  {Object} headless Headless object
+	 * @return {Object}          Promise object. Success return with boolean for result of operation.
+	 */
+	clickOnSendButton: function(headless) {
+		return headless.page.evaluate(function() {
+			// find button to click
+			var buttonElem = document.querySelector('a.btn.btn_send');
+			if (buttonElem) {
+				buttonElem.click();
+
+				return true;
+			}
+			else {
+				return false;
+			}
+		});
 	}
 };
 

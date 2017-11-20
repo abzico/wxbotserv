@@ -4,24 +4,25 @@
   "description": "WeChat bot for normal user account that runs on server-side. Yes, server-side.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/test-simple.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/haxpor/wxbotserv.git"
+    "url": "git+https://github.com/abzico/wxbotserv.git"
   },
   "keywords": [
     "wechat",
     "bot",
     "wx",
-    "user"
+    "user",
+    "api"
   ],
-  "author": "Wasin Thonkaew",
+  "author": "Wasin Thonkaew, abzi.co",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/haxpor/wxbotserv/issues"
+    "url": "https://github.com/abzico/wxbotserv/issues"
   },
-  "homepage": "https://github.com/haxpor/wxbotserv#readme",
+  "homepage": "https://github.com/abzico/wxbotserv#readme",
   "dependencies": {
     "phantom": "^4.0.8",
     "request": "^2.83.0",
