@@ -6,9 +6,9 @@ var _ = {
 	/**
 	 * Process messages.
 	 * @param  {Object} headless Headless object
-	 * @return {[type]}          [description]
+	 * @param {Function} processorFn (Optional) Message processor function with signature fn(msgObj) in which msgObj is { context: <Object>, message: <String> }. The function needs to return string as a reply back of receiving message.
 	 */
-	processMsgs: function(headless) {
+	processMsgs: function(headless, processorFn) {
 
 		// check normal new msg
 		wxMediator.checkNewMsgAndClickOnIt(headless, true)
@@ -30,13 +30,18 @@ var _ = {
 									// get individual message
 									let msg = msgs[i];
 
-									// TODO: Refactor this part out to message userland so user can add customized code
-									// Part this out to user, to let them set what to response
-									// we also need to limit the time processing, i.e. only within 5 seconds, if not process in time then we automatically 
-									if (msg.context.type === 'message' && (msg.message === 'test1' || msg.message === 'test2')) {
-									// -- end of userland section --
+									if (processorFn != null) {
+										// call custom processor callback to get reply message
+										var replyMsg = processorFn(msg);
+
+										// validate
+										if (replyMsg == null || typeof replyMsg !== 'string') {
+											// return immediately, and skip to next message
+											return resolve();
+										}
+
 										// set reply message
-										wxMediator.setReplyMsg(headless, 'reply:' + msg.message)
+										wxMediator.setReplyMsg(headless, replyMsg)
 											.then((result) => {
 												if (result) {
 													logger.log('successfully set reply msg to textarea');
@@ -107,12 +112,11 @@ var _ = {
 											});
 									}
 									else {
-										logger.log('not support message type');
+										// processor callback for message isn't set, then ignore it
+										logger.log('processor callback isn\'t set, skip processing');
 										// just ignore this message
-										// resolve it, if reject it will stop here
 										resolve();
 									}
-									// -- end of what-should-be-in-userland --
 								});
 							};
 
