@@ -14,6 +14,8 @@ Use environment variables to customize how the bot will work.
 
 ## Start the Bot!
 
+Install the bot via `npm install wxbotserv` (Required node version 6+).
+
 Import the bot, and start it as follows
 
 ```javascript
