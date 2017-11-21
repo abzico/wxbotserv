@@ -18,16 +18,33 @@ Import the bot, and start it as follows
 
 ```javascript
 const wxbotserv = require('wxbotserv');
-wxbotserv();
+wxbotserv(function(msgObj) {
+	if (msgObj.message === 'hello world') {
+		return 'hello world to you too!';
+	}
+	else {
+		return 'Please say hello world to me...';
+	}
+});
 ```
 
-Or you can specify `options` which can be
+Or you could specify `options` object with following format
 
 ```javascript
 {
 	processMsgDelay: <number>, // delay between each processing message
 	debugLog: <boolean> // whether or not to print out debugging log to console
 }
+```
+
+as follows
+
+```javascript
+let options = { processMsgDelay: 150, debugLog: false };
+
+wxbotserv(function(msgObj) {
+	// ...
+}, options);
 ```
 
 # Project Status
