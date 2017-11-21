@@ -19,6 +19,7 @@ process.on('SIGINT', () => { clearFn(); });
 
 /**
  * Start the bot with options.
+ * @param {Function} msgProcessorFn Message processing callback for each incoming message that bot receives. Signature is fn(msgObj) in which msgObj is { context: <Object>, message: <String> } and needs to return string as a response to send back as reply message.
  * @param {Object} options (Optional) options to start the bot. It can be as follows.
  * {  
  * `processMsgDelay`: *Number* = Delay between each processing message. In millisecond.,  
@@ -26,7 +27,7 @@ process.on('SIGINT', () => { clearFn(); });
  * }
  * @return {Object} Promise object. Success will contain no data response if the bot starts normally, otherwise return false with Error object. Success returned doesn't mean that the bot get passed login screen, user still need to scan to proceed.
  */
-function start(options) {
+function start(msgProcessorFn, options) {
 
 	// set logging enabled
 	if (options && options.debugLog != null) {
@@ -48,7 +49,7 @@ function start(options) {
 					// now the page is loaded successfully
 					// use delay from specified options or default value
 					intervalId = setInterval(() => {
-						logic.processMsgs(headless);
+						logic.processMsgs(headless, msgProcessorFn);
 					}, defaultConfigs.processMsgDelay || (options && options.processMsgDelay));
 				}
 			},

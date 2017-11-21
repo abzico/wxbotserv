@@ -30,6 +30,13 @@ Or you can specify `options` which can be
 }
 ```
 
+# Project Status
+
+- [x] notify QR Code image to Slack channel
+- [ ] notify QR Code image to WeChat Official / Subscription account that has permission to send template message
+- [x] support plain text message as response back from bot
+- [ ] support more type of message (image, etc) as response back from bot 
+
 # License
 
 [MIT](https://github.com/haxpor/wxbotserv/blob/master/LICENSE), Wasin Thonkaew, [abzi.co](https://abzi.co)
