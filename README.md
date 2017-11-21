@@ -53,6 +53,10 @@ wxbotserv(function(msgObj) {
 - [ ] notify QR Code image to WeChat Official / Subscription account that has permission to send template message
 - [x] support plain text message as response back from bot
 - [ ] support more type of message (image, etc) as response back from bot 
+- [ ] list contacts especially to get WeChat user's ID and name
+- [ ] set to listen to new messages to only target users (so bot won't get rid of all your message notifications if not necessary)
+- [x] listen to new unmuted message
+- [ ] listen to new muted messages
 
 # License
 
