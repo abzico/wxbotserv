@@ -58,7 +58,7 @@ wxbotserv(function(msgObj) {
 - [ ] list contacts especially to get WeChat user's ID and name
 - [ ] set to listen to new messages to only target users (so bot won't get rid of all your message notifications if not necessary)
 - [x] listen to new unmuted message
-- [ ] listen to new muted messages
+- [x] listen to new muted messages
 
 # License
 
