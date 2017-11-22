@@ -2,14 +2,16 @@
 var _ = {
 
 	/**
-	 * Check if there's any new message, and also click on that conversation with target user/group chat associated with this new message.
+	 * Check if there's any new muted or unmuted message, and also click on that conversation with target user/group chat associated with this new message.
 	 * @param  {Object}  headless Headless Object
 	 * @param {Boolean} markAsPreviousItem Whether to mark as previous item. Default is false.
 	 * @return {Object}           Promise object. If new message is found, then result will contain number of new message, otherwise return false.
 	 */
 	checkNewMsgAndClickOnIt: function(headless, markAsPreviousItem=false) {
 		return headless.page.evaluate(function(markAsPreviousItem) {
-			var elem = document.querySelector('.icon.web_wechat_reddot_middle');
+			// combine both type of messgae (unmuted and muted)
+			// whichever we find first, then we use that one
+			var elem = document.querySelector('.icon.web_wechat_reddot_middle, .icon.web_wechat_reddot');
 			if (elem == null) {
 				return false;
 			}
@@ -21,52 +23,11 @@ var _ = {
 				else {
 					// get number of new messages first
 					var newMsgs = elem.innerText || elem.textContent;
-
-					// get parent element
-					// note: we need to get parent element because we need to set attribute to mark as previous item at this level, and works as tested to be able to click on it
-					var parentElem = elem.parentElement;
-
-					// click on conversation of target user/group chat associated with this new messages
-					parentElem.click();
-					// need to mark as previous item or not
-					if (markAsPreviousItem) {
-						parentElem.setAttribute('data-wxbotserv-previousitem-id', "1");
+					// if newMsgs is empty or null, then we knew this is muted msg
+					if (newMsgs == null || newMsgs == '') {
+						// set it to 1 new message (as we don't have mechanism to track latest msg yet)
+						newMsgs = 1;
 					}
-					else {
-						if (item.hasAttribute('data-wxbotserv-previousitem-id')) {
-							parentElem.setAttribute('data-wxbotserv-previousitem-id', "0");
-						}
-					}
-					// return with number of new messages
-					return parseInt(newMsgs);
-				}
-			}
-		}, markAsPreviousItem);
-	},
-
-	/**
-	 * Check if there's any new message, and also click on that conversation with target user/group chat associated with this new message.
-	 *
-	 * Please note that we didn't keep track of latest message received at the moment, thus for muted conversation you can't know number of new messages received.
-	 * 
-	 * @param  {Object} headless Headless object
-	 * @param {Boolean} markAsPreviousItem Whether to mark as previous item. Default is false.
-	 * @return {Object}          Promise object. If new message is found, then result will return 1 indicating only new message to be processed, otherwise return false.
-	 */
-	checkNewMutedMsg: function(headless, markAsPreviousItem=false) {
-		return headless.page.evaluate(function(markAsPreviousItem) {
-			var elem = document.querySelector('.icon.web_wechat_reddot');
-			if (elem == null) {
-				return false;
-			}
-			else {
-				// we're interested in its parent node
-				if (elem.parentElement == null) {
-					return false;
-				}
-				else {
-					// get number of new messages first
-					var newMsgs = elem.innerText || elem.textContent;
 
 					// get parent element
 					// note: we need to get parent element because we need to set attribute to mark as previous item at this level, and works as tested to be able to click on it

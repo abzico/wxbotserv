@@ -14,6 +14,8 @@ Use environment variables to customize how the bot will work.
 
 ## Start the Bot!
 
+Install the bot via `npm install wxbotserv` (Required node version 6+).
+
 Import the bot, and start it as follows
 
 ```javascript
@@ -56,7 +58,7 @@ wxbotserv(function(msgObj) {
 - [ ] list contacts especially to get WeChat user's ID and name
 - [ ] set to listen to new messages to only target users (so bot won't get rid of all your message notifications if not necessary)
 - [x] listen to new unmuted message
-- [ ] listen to new muted messages
+- [x] listen to new muted messages
 
 # License
 
