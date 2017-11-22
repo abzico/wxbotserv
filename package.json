@@ -1,6 +1,6 @@
 {
   "name": "wxbotserv",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "WeChat bot for normal user account that runs on server-side. Yes, server-side.",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,8 @@
     "bot",
     "wx",
     "user",
-    "api"
+    "api",
+    "weixin"
   ],
   "author": "Wasin Thonkaew, abzi.co",
   "license": "MIT",
