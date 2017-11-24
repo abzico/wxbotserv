@@ -258,6 +258,104 @@ var _ = {
 				return false;
 			}
 		});
+	},
+
+	/**
+	 * Click on chat tab button.
+	 * @param  {Object} headless Headless object
+	 * @return {Object}          Promise object. Success contains boolean for result of operation. Otherwise failure contains false as result.
+	 */
+	clickOnChatTabButton: function(headless) {
+		return headless.page.evaluate(function() {
+			var tabItem = document.querySelector('div.tab.no_reader div.tab_item a.chat[ui-sref="chat"]');
+			if (tabItem) {
+				tabItem.click();
+				return true;
+			}
+			else {
+				return false;
+			}
+		});
+	},
+
+	/**
+	 * Click on contact tab button.
+	 * @param  {Object} headless Headless object
+	 * @return {Object}          Promise object. Success contains boolean for result of operation. Otherwise failure contains false as result.
+	 */
+	clickOnContactTabButton: function(headless) {
+		return headless.page.evaluate(function() {
+			var tabItem = document.querySelector('div.tab.no_reader div.tab_item.no_extra a.chat[ui-sref="contact"]');
+			if (tabItem) {
+				tabItem.click();
+				return true;
+			}
+			else {
+				return false;
+			}
+		});
+	},
+
+	/**
+	 * Get all contacts.
+	 * 
+	 * @param  {Object} headless Headless object
+	 * @return {Object}          Promise object. Success contains array of contact which is { wechat_id: <String>, display_name: <String>, avatar_url: <String> }. Otherwise failure contains null.
+	 */
+	getAllContacts: function(headless) {
+		return headless.page.evaluate(function() {
+			// get scrollable div element
+			var scrollableDiv = document.querySelector('div.J_ContactScrollBody.scrollbar-dynamic.contact_list.scroll-content.scroll-scrolly_visible');
+			if (scrollableDiv) {
+
+				// get all contact elements
+				var contactElements = scrollableDiv.querySelectorAll('div[mm-repeat="item in allContacts"] div.ng-isolate-scope[contact-item-directive] div.contact_item');
+				// if there's no elements then return now
+				if (contactElements.length <= 0) {
+					return 1;
+				}
+				else {
+					// result we will return
+					var contacts = [];
+
+					// convert to normal Array
+					//var contacts = Array.prototype.slice.call(contactElements);
+					// loop through all contacts to extract information
+					for (var i=0; i<contactElements.length; i++) {
+						var contactElement = contactElements[i];
+
+						// get id, and avatar url
+						var imgDiv = contactElement.querySelector('div.avatar img.img.lazy');
+						// if not found, skip now
+						if (imgDiv == null) continue;
+						var avatarUrl = imgDiv.getAttribute('src');
+						// if url is malformed, skip now
+						if (avatarUrl == null || avatarUrl == '') continue;
+						// extract wechat id from url
+						var wechatId = /.*username=(.+?)\&skey=.*/.exec(avatarUrl)[1];
+
+						// get display name
+						var h4 = contactElement.querySelector('div.info h4');
+						// if not found, skip now
+						if (h4 == null) continue;
+						// extract display name
+						var displayName = h4.innerHTML || h4.textContent;
+
+						// push a new contact info into result array
+						contacts.push({
+							wechat_id: wechatId,
+							display_name: displayName,
+							avatar_url: avatarUrl
+						});
+					}
+
+					return contacts;
+				}
+			}
+			else {
+				return 2;
+			}
+		});
 	}
 };
 

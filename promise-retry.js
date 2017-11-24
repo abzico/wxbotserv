@@ -17,3 +17,11 @@ Promise.retry = function(cont, fn, delay, ...args) {
     }) : Promise.reject(err);
   });
 };
+
+Promise.retryEndlessly = function(fn, delay, ...args) {
+  return fn(...args).catch(function(err) {
+    return Promise.wait(delay).then(function() {
+      return Promise.retryEndlessly(fn, delay, ...args);
+    });
+  });
+};

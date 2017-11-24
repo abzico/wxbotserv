@@ -1,8 +1,100 @@
+require('./promise-retry.js');
 const wxMediator = require('./wechat/mediator.js');
 const syncPromiseLoop = require('./promise-syncloop.js');
 const logger = require('./log/logger.js');
+const events = require('./events/events.js');
+const eventsConst = require('./events/events-const.js');
+
+// flag indicate whether we load all contact according to Internet request
+var isLoadedContacts = false;
+
+// receive onResourceReceived event
+events.on(eventsConst.onResourceReceived, (resource) => {
+	// if phantom makes request for contact, and we received the response
+	// then we will mark that we received information
+	if (/^https:\/\/web\.wechat\.com\/cgi-bin\/mmwebwx-bin\/webwxbatchgetcontact.+/.test(resource.url)) {
+		logger.log('received response for contact request');
+		isLoadedContacts = true;
+	}
+
+	logger.log('received response: ' + resource.url);
+});
+
+function waitUntilContactLoaded() {
+	return Promise.retryEndlessly(() => {
+		if (isLoadedContacts) return Promise.resolve();
+		else return Promise.reject();
+	}, 100);
+}
 
 var _ = {
+
+	/**
+	 * All contacts
+	 * @type {Array}
+	 */
+	contacts: null,
+
+	/**
+	 * Get all contacts.
+	 *
+	 * It will click on contact tab button, then parse DOM to extract needed information before returning it.
+	 * @param  {Object} headless Headless object
+	 * @return {Object}          Promise object. Success contains array of contact which is { wechat_id: <String>, display_name: <String>, avatar_url: <String> }. Otherwise failure contains null.
+	 */
+	getAllContacts: function(headless) {
+		var that = this;
+
+		return new Promise((resolve, reject) => {
+			// click on contact tab button
+			wxMediator.clickOnContactTabButton(headless)
+				.then((result) => {
+					if (result) {
+						logger.log('clicked on contact tab button')
+
+						// wait until contact is loaded
+						waitUntilContactLoaded().then(() => {
+							logger.log('contacts are loaded');
+							// get all contacts
+							wxMediator.getAllContacts(headless)
+								.then((contacts) => {
+									// save contacts
+									that.contacts = contacts;
+
+									// click on chat tab button
+									wxMediator.clickOnChatTabButton(headless)
+										.then((result) => {
+											if (result) {
+												logger.log('clicked on chat tab button');
+												resolve(that.contacts);
+											}
+											else {
+												logger.log('failed to click on chat tab button');
+												reject(false);
+											}
+										})
+										.catch((err) => {
+											logger.log('error trying to click on chat tab button');
+											reject(err);
+										});
+								})
+								.catch((err) => {
+									reject(err);
+								});
+						});
+					}
+					else {
+						logger.log('failed to click on contact tab item');
+						reject(false);
+					}
+				})
+				.catch((err) => {
+					logger.log('error trying to click on contact tab item');
+					reject(err);
+				});
+		});
+	},
+
 	/**
 	 * Process messages.
 	 * @param  {Object} headless Headless object

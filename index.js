@@ -4,6 +4,8 @@ const slackNotify = require('./notify/slack-notify.js');
 const defaultConfigs = require('./config.js');
 const logic = require('./logic.js');
 const logger = require('./log/logger.js');
+const events = require('./events/events.js');
+const eventsConst = require('./events/events-const.js');
 let intervalId = null;
 require('./promise-retry.js');
 
@@ -39,22 +41,39 @@ function start(msgProcessorFn, options) {
 		headless.openURL('https://wx.qq.com', {
 			onLoadFinished: (status) => {
 				if (status == 'success') {
+					// emit event
+					events.emit(eventsConst.onLoadFinished);
+
 					logger.log('--- Page finished loading ---');
 
-					// clear interval first if already created
-					if (intervalId) {
-						clearInterval(intervalId);
-						intervalId = null;
-					}
-					// now the page is loaded successfully
-					// use delay from specified options or default value
-					intervalId = setInterval(() => {
-						logic.processMsgs(headless, msgProcessorFn);
-					}, defaultConfigs.processMsgDelay || (options && options.processMsgDelay));
+					// try to get all contacts once
+					logic.getAllContacts(headless)
+						.then((contacts) => {
+							
+							// emit event with contacts
+							events.emit(eventsConst.onGotAllContacts, contacts);
+
+							// clear interval first if already created
+							if (intervalId) {
+								clearInterval(intervalId);
+								intervalId = null;
+							}
+							// now the page is loaded successfully
+							// use delay from specified options or default value
+							intervalId = setInterval(() => {
+								logic.processMsgs(headless, msgProcessorFn);
+							}, defaultConfigs.processMsgDelay || (options && options.processMsgDelay));
+						})
+						.catch((err) => {
+							logger.log(err);
+						});
 				}
 			},
 
 			onResourceRequested: (requestData) => {
+				// emit event
+				events.emit(eventsConst.onResourceRequested, requestData);
+
 				logger.log('Requesting: ',requestData.url);
 
 				// check if such url is qrcode image
@@ -77,7 +96,10 @@ function start(msgProcessorFn, options) {
 			},
 
 			onResourceReceived: (resource) => {
-				//console.log('received resource: ', resource);
+				// emit event
+				events.emit(eventsConst.onResourceReceived, resource);
+
+				//logger.log('received resource: ', resource);
 			}
 		})
 		.then((content) => {
@@ -91,4 +113,7 @@ function start(msgProcessorFn, options) {
 	});
 }
 
-module.exports = start;
+module.exports = {
+	start: start,
+	events: events
+}
