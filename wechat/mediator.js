@@ -320,23 +320,10 @@ var _ = {
 					// result we will return
 					var contacts = [];
 
-					// set the starting index
-					var startIndex = 0;
-					if (afterThisContact != null) {
-						for (var i=0; i<contactElements.length; i++) {
-							var contactElement = contactElements[i];
-							if (contactElement.wechat_id === afterThisContact.wechat_id) {
-								// set start index is next to this contact object
-								startIndex++;
-								break;
-							}
-						}
-					}
-
 					// convert to normal Array
 					//var contacts = Array.prototype.slice.call(contactElements);
 					// loop through all contacts to extract information
-					for (var i=startIndex; i<contactElements.length; i++) {
+					for (var i=0; i<contactElements.length; i++) {
 						var contactElement = contactElements[i];
 
 						// get id, and avatar url
@@ -362,6 +349,23 @@ var _ = {
 							display_name: displayName,
 							avatar_url: avatarUrl
 						});
+					}
+
+					// slice out overlapping contacts
+					// set the starting index
+					var startSliceIndex = 0;
+					if (afterThisContact != null) {
+						for (var i=0; i<contacts.length; i++) {
+							var contact = contacts[i];
+							if (contact.wechat_id === afterThisContact.wechat_id) {
+								// set start index is next to this contact object
+								startSliceIndex = i+1;
+
+								// slice array
+								contacts = contacts.slice(startSliceIndex);
+								break;
+							}
+						}
 					}
 
 					// progress for one page
