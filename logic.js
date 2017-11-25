@@ -109,7 +109,7 @@ var _ = {
 									logger.log(`need to get all contacts from ${numPage} page(s)`);
 
 									// hold all contacts for each page here
-									var allContacts = [];
+									let allContacts = [];
 									var bottomMostContactOfCurrPage = null;
 
 									// create worker fn to work in promise-syncloop
@@ -128,7 +128,7 @@ var _ = {
 														logger.log('bottomMostContact: ', bottomMostContactOfCurrPage);
 														
 														// save contacts for our accumulated contacts to use later
-														allContacts.concat(_contacts);
+														allContacts = allContacts.concat(_contacts);
 
 														// invalidate contact loaded status
 														isLoadedContactsCurrentPage = false;
