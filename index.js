@@ -9,6 +9,16 @@ const eventsConst = require('./events/events-const.js');
 let intervalId = null;
 require('./promise-retry.js');
 
+// flag indicate whether we load all contact according to Internet request
+let isLoadedContactsCurrentPage = false;
+
+function waitUntilContactLoaded() {
+	return Promise.retryEndlessly(() => {
+		if (isLoadedContactsCurrentPage) return Promise.resolve();
+		else return Promise.reject();
+	}, 100);
+}
+
 // listen when app is killed
 let clearFn = function() {
 	if (intervalId) clearInterval(intervalId);
@@ -46,23 +56,46 @@ function start(msgProcessorFn, options) {
 
 					logger.log('--- Page finished loading ---');
 
-					// try to get all contacts once
-					logic.getAllContacts(headless)
-						.then((contacts) => {
-							
-							// emit event with contacts
-							events.emit(eventsConst.onGotAllContacts, contacts);
+					logic.wxMediator.checkIsLoginPage(headless)
+						.then((isLoginPage) => {
+							logger.log(isLoginPage);
+							// if it's not login page, then we proceed
+							if (!isLoginPage) {
+								logger.log('--- it is chat page ---');
 
-							// clear interval first if already created
-							if (intervalId) {
-								clearInterval(intervalId);
-								intervalId = null;
+								// wait until contacts are loaded
+								waitUntilContactLoaded().then(() => {
+									logger.log('contacts are loaded');
+
+									// try to get all contacts once
+									logic.getAllContacts(headless)
+										.then((contacts) => {
+											logger.log('internally got all contacts: ', contacts);
+
+											// emit event with contacts
+											events.emit(eventsConst.onGotAllContacts, contacts);
+
+											// clear interval first if already created
+											if (intervalId) {
+												clearInterval(intervalId);
+												intervalId = null;
+											}
+											// now the page is loaded successfully
+											// use delay from specified options or default value
+											intervalId = setInterval(() => {
+												logic.processMsgs(headless, msgProcessorFn);
+											}, defaultConfigs.processMsgDelay || (options && options.processMsgDelay));
+
+											logger.log('setup msg-processor function now');
+										})
+										.catch((err) => {
+											logger.log(err);
+										});
+									});
 							}
-							// now the page is loaded successfully
-							// use delay from specified options or default value
-							intervalId = setInterval(() => {
-								logic.processMsgs(headless, msgProcessorFn);
-							}, defaultConfigs.processMsgDelay || (options && options.processMsgDelay));
+							else {
+								logger.log('--- it is login page ---');
+							}
 						})
 						.catch((err) => {
 							logger.log(err);
@@ -98,6 +131,13 @@ function start(msgProcessorFn, options) {
 			onResourceReceived: (resource) => {
 				// emit event
 				events.emit(eventsConst.onResourceReceived, resource);
+
+				// if phantom makes request for contact, and we received the response
+				// then we will mark that we received information
+				if (!isLoadedContactsCurrentPage && /^https:\/\/web\.wechat\.com\/cgi-bin\/mmwebwx-bin\/webwxbatchgetcontact.+/.test(resource.url)) {
+					logger.log('received response for contact request');
+					isLoadedContactsCurrentPage = true;
+				}
 
 				//logger.log('received resource: ', resource);
 			}

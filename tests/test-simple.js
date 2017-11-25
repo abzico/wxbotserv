@@ -3,7 +3,7 @@ const wxbotserv = require('../index.js');
 
 // listen once when we got all contacts
 wxbotserv.events.on('onGotAllContacts', (contacts) => {
-	console.log('got all contacts: ', contacts);
+	console.log(`got all contacts (${contacts.length}): `, contacts);
 });
 
 // just like that :)

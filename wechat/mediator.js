@@ -297,13 +297,15 @@ var _ = {
 	},
 
 	/**
-	 * Get all contacts.
+	 * Get contacts that visible on current page according to scroll position, then scroll next for one page.
 	 * 
 	 * @param  {Object} headless Headless object
-	 * @return {Object}          Promise object. Success contains array of contact which is { wechat_id: <String>, display_name: <String>, avatar_url: <String> }. Otherwise failure contains null.
+	 * @param {Object} afterThisContact (optional) set contact object to start the iterating process to get all contacts of current page after the specified contact. If you try to get all contacts from multiple page, keep track of previous page's bottom-most contact object and supply to this function. Default is null.
+	 * @return {Object}          Promise object. Success contains array of contacts [{ wechat_id: <String>, display_name: <String>, avatar_url: <String> }].
+	 * 	Note that when user firstly receives true as result from 2nd element of result, user should stop the operation as all contacts are returned already, if keep continue user will get the last page contacts as result. Otherwise failure contains null.
 	 */
-	getAllContacts: function(headless) {
-		return headless.page.evaluate(function() {
+	getContactsOnCurrentPageScrolledThenScrollToNextPage: function(headless, afterThisContact=null) {
+		return headless.page.evaluate(function(afterThisContact) {
 			// get scrollable div element
 			var scrollableDiv = document.querySelector('div.J_ContactScrollBody.scrollbar-dynamic.contact_list.scroll-content.scroll-scrolly_visible');
 			if (scrollableDiv) {
@@ -318,10 +320,23 @@ var _ = {
 					// result we will return
 					var contacts = [];
 
+					// set the starting index
+					var startIndex = 0;
+					if (afterThisContact != null) {
+						for (var i=0; i<contactElements.length; i++) {
+							var contactElement = contactElements[i];
+							if (contactElement.wechat_id === afterThisContact.wechat_id) {
+								// set start index is next to this contact object
+								startIndex++;
+								break;
+							}
+						}
+					}
+
 					// convert to normal Array
 					//var contacts = Array.prototype.slice.call(contactElements);
 					// loop through all contacts to extract information
-					for (var i=0; i<contactElements.length; i++) {
+					for (var i=startIndex; i<contactElements.length; i++) {
 						var contactElement = contactElements[i];
 
 						// get id, and avatar url
@@ -349,11 +364,83 @@ var _ = {
 						});
 					}
 
+					// progress for one page
+					scrollableDiv.scrollTop += scrollableDiv.clientHeight;
+
+					// return result
 					return contacts;
 				}
 			}
 			else {
 				return 2;
+			}
+		}, afterThisContact);
+	},
+
+	/**
+	 * Get scrollable div element's clientHeight property.
+	 * @param  {Object} headless Headless object
+	 * @return {Object} Promise object. Success contains {clientHeight, scrollHeight, scrollTop}. Failure contains null as result.
+	 */
+	getScrollableDivEssentialProperties: function(headless) {
+		return headless.page.evaluate(function() {
+			var scrollableDiv = document.querySelector('div.J_ContactScrollBody.scrollbar-dynamic.contact_list.scroll-content.scroll-scrolly_visible');
+			if (scrollableDiv) {
+				return {
+					client_height: scrollableDiv.clientHeight,
+					scroll_height: scrollableDiv.scrollHeight, 
+					scroll_top: scrollableDiv.scrollTop
+				};
+			}
+			else {
+				return null;
+			}
+		});
+	},
+
+	/**
+	 * Set scrollable div element's scrollTop property.
+	 * @param  {Object} headless Headless object
+	 * @param {Number} amount Scroll amount to add to the current scrollTop.
+	 * @return {Object}           Promise object. Success contains current value of scrollableDiv's scrollTop property. Failutre contains false as result.
+	 */
+	nextPageForScrollableDiv: function(headless, amount) {
+		return headless.page.evaluate(function(amount) {
+			var scrollableDiv = document.querySelector('div.J_ContactScrollBody.scrollbar-dynamic.contact_list.scroll-content.scroll-scrolly_visible');
+			if (scrollableDiv) {
+				scrollableDiv.scrollTop += amount;
+				return scrollableDiv.scrollTop;
+			}
+			else {
+				return false;
+			}
+		}, amount);
+	},
+
+	/**
+	 * Check whether the current page is login page or not.
+	 * @param  {Object} headless Headless object
+	 * @return {Object}          Promise object. Success contains either true/false depending on the status of whether it's login page or not, if it's not login page, then return true, otherwise return false. Failure contains null.
+	 */
+	checkIsLoginPage: function(headless) {
+		return headless.page.evaluate(function() {
+			// try to get search bar element (as user can activated on either chat or contact tab button) but search bar is always visible after login page, ...
+			// then check if it's visible or not
+			var searchbar = document.getElementById('search_bar');
+			if (searchbar) {
+				var boundingClient = searchbar.getBoundingClientRect();
+				if (boundingClient.width === 0 &&
+					  boundingClient.height === 0) {
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+			else {
+				// cannot find searchbar element, thus it's login page
+				// (but the sourcecode usually contains such element)
+				return true;
 			}
 		});
 	}
