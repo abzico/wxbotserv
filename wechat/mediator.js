@@ -312,8 +312,16 @@ var _ = {
 		return headless.page.evaluate(function() {
 			var tabItem = document.querySelector('div.tab.no_reader div.tab_item a.chat[ui-sref="chat"]');
 			if (tabItem) {
-				tabItem.click();
-				return true;
+				// also check if it's visible
+				var boundingClient = tabItem.getBoundingClientRect();
+				if (boundingClient.width === 0 &&
+					  boundingClient.height === 0) {
+					return false;
+				}
+				else {
+					tabItem.click();
+					return true;
+				}
 			}
 			else {
 				return false;
@@ -330,8 +338,16 @@ var _ = {
 		return headless.page.evaluate(function() {
 			var tabItem = document.querySelector('div.tab.no_reader div.tab_item.no_extra a.chat[ui-sref="contact"]');
 			if (tabItem) {
-				tabItem.click();
-				return true;
+				// also check if it's visible
+				var boundingClient = tabItem.getBoundingClientRect();
+				if (boundingClient.width === 0 &&
+					  boundingClient.height === 0) {
+					return false;
+				}
+				else {
+					tabItem.click();
+					return true;
+				}
 			}
 			else {
 				return false;
