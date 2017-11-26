@@ -414,25 +414,6 @@ var _ = {
 	},
 
 	/**
-	 * Set scrollable div element's scrollTop property.
-	 * @param  {Object} headless Headless object
-	 * @param {Number} amount Scroll amount to add to the current scrollTop.
-	 * @return {Object}           Promise object. Success contains current value of scrollableDiv's scrollTop property. Failutre contains false as result.
-	 */
-	nextPageForScrollableDiv: function(headless, amount) {
-		return headless.page.evaluate(function(amount) {
-			var scrollableDiv = document.querySelector('div.J_ContactScrollBody.scrollbar-dynamic.contact_list.scroll-content.scroll-scrolly_visible');
-			if (scrollableDiv) {
-				scrollableDiv.scrollTop += amount;
-				return scrollableDiv.scrollTop;
-			}
-			else {
-				return false;
-			}
-		}, amount);
-	},
-
-	/**
 	 * Check whether the current page is login page or not.
 	 * @param  {Object} headless Headless object
 	 * @return {Object}          Promise object. Success contains either true/false depending on the status of whether it's login page or not, if it's not login page, then return true, otherwise return false. Failure contains null.
