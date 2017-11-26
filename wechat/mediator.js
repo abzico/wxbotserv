@@ -161,7 +161,7 @@ var _ = {
 
 			// if there's no message
 			if (msgDivs.length <= 0) {
-				return 1;
+				return [];
 			}
 
 			// check to slice msgDivs
