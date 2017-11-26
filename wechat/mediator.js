@@ -4,11 +4,12 @@ var _ = {
 	/**
 	 * Check if there's any new muted or unmuted message, and also click on that conversation with target user/group chat associated with this new message.
 	 * @param  {Object}  headless Headless Object
-	 * @param {Boolean} markAsPreviousItem Whether to mark as previous item. Default is false.
+	 * @param {Boolean} markAsPreviousItem (optional) Whether to mark as previous item. Default is false.
+	 * @param {Array} onlySenderIds (optional) Array of sender ids if need to filter only new messages from this sender only without getting rid of new message notification across device & app. Sender id can be both normal user (prefixed with @) or group chat (prefiexed with @@). Default is null.
 	 * @return {Object}           Promise object. If new message is found, then result will contain number of new message, otherwise return false.
 	 */
-	checkNewMsgAndClickOnIt: function(headless, markAsPreviousItem=false) {
-		return headless.page.evaluate(function(markAsPreviousItem) {
+	checkNewMsgAndClickOnIt: function(headless, markAsPreviousItem=false, onlySenderIds=null) {
+		return headless.page.evaluate(function(markAsPreviousItem, onlySenderIds) {
 			// combine both type of messgae (unmuted and muted)
 			// whichever we find first, then we use that one
 			var elem = document.querySelector('.icon.web_wechat_reddot_middle, .icon.web_wechat_reddot');
@@ -21,6 +22,37 @@ var _ = {
 					return false;
 				}
 				else {
+					// check if need to filter against sender id
+					if (onlySenderIds != null && onlySenderIds.length > 0) {
+						// 2 levels up in the chain of DOM hierarchy to get 'data-cm' that contains WeChat Id to compare
+						// if not exist, then ignore it
+						if (elem.parentElement != null && elem.parentElement.parentElement != null) {
+							var targetElem = elem.parentElement.parentElement;
+							var dataCm = targetElem.getAttribute('data-cm');
+							try {
+								var dataCmObj = JSON.parse(dataCm);
+								var wechatId = dataCmObj.username;
+
+								// compare wechatId to specified onlySenderIds
+								// if not match then return false immediately
+								var found = false;
+								for (var i=0; i<onlySenderIds.length; i++) {
+									if (onlySenderIds[i] === wechatId) {
+										found = true;
+										break;
+									}
+								}
+
+								// if still not found then return it immediately
+								if (!found) {
+									return false;
+								}
+							} catch(e) {
+								// ignore error
+							}
+						}
+					}
+
 					// get number of new messages first
 					var newMsgs = elem.innerText || elem.textContent;
 					// if newMsgs is empty or null, then we knew this is muted msg
@@ -48,7 +80,7 @@ var _ = {
 					return parseInt(newMsgs);
 				}
 			}
-		}, markAsPreviousItem);
+		}, markAsPreviousItem, onlySenderIds);
 	},
 
 	/**
@@ -312,8 +344,7 @@ var _ = {
 	 * 
 	 * @param  {Object} headless Headless object
 	 * @param {Object} afterThisContact (optional) set contact object to start the iterating process to get all contacts of current page after the specified contact. If you try to get all contacts from multiple page, keep track of previous page's bottom-most contact object and supply to this function. Default is null.
-	 * @return {Object}          Promise object. Success contains array of contacts [{ wechat_id: <String>, display_name: <String>, avatar_url: <String> }].
-	 * 	Note that when user firstly receives true as result from 2nd element of result, user should stop the operation as all contacts are returned already, if keep continue user will get the last page contacts as result. Otherwise failure contains null.
+	 * @return {Object}          Promise object. Success contains array of contacts [{ wechat_id: <String>, display_name: <String>, avatar_url: <String> }]. Otherwise failure contains null.
 	 */
 	getContactsOnCurrentPageScrolledThenScrollToNextPage: function(headless, afterThisContact=null) {
 		return headless.page.evaluate(function(afterThisContact) {
@@ -325,7 +356,7 @@ var _ = {
 				var contactElements = scrollableDiv.querySelectorAll('div[mm-repeat="item in allContacts"] div.ng-isolate-scope[contact-item-directive] div.contact_item');
 				// if there's no elements then return now
 				if (contactElements.length <= 0) {
-					return 1;
+					return null;
 				}
 				else {
 					// result we will return
@@ -387,7 +418,7 @@ var _ = {
 				}
 			}
 			else {
-				return 2;
+				return null;
 			}
 		}, afterThisContact);
 	},

@@ -210,11 +210,12 @@ var _ = {
 	 * Process messages.
 	 * @param  {Object} headless Headless object
 	 * @param {Function} processorFn (Optional) Message processor function with signature fn(msgObj) in which msgObj is { context: <Object>, message: <String> }. The function needs to return string as a reply back of receiving message.
+	 * @param {Array} onlySenderIds (optional) Array of sender ids if need to filter only new messages from this sender only without getting rid of new message notification across device & app. Sender id can be both normal user (prefixed with @) or group chat (prefiexed with @@). Default is null.
 	 */
-	processMsgs: function(headless, processorFn) {
+	processMsgs: function(headless, processorFn, onlySenderIds=null) {
 
 		// check normal new msg
-		wxMediator.checkNewMsgAndClickOnIt(headless, true)
+		wxMediator.checkNewMsgAndClickOnIt(headless, true, onlySenderIds)
 			.then((newMsgs) => {
 				if (newMsgs != 0 && newMsgs != false) {
 					logger.log(`found (${newMsgs}) new messages`);

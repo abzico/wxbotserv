@@ -8,11 +8,8 @@ wxbotserv.events.on('onGotAllContacts', (contacts) => {
 
 // just like that :)
 wxbotserv.start((msgObj) => {
-	// if (msgObj.message === 'hello world') {
-	// 	return 'hey you!';
-	// }
-	// else {
-	// 	return 'you entered wrong message';
-	// }
-	return null; // if you don't care to reply message based on what received
+	if (msgObj.message === 'test1') {
+		return 'hey you!';
+	}
+	//return null; // if you don't care to reply message based on what received
 });
