@@ -163,7 +163,24 @@ var _ = {
 												logger.log('we got all contacts now!');
 												// save all contacts to itself for later use
 												that.contacts = allContacts;
-												resolve(allContacts);
+
+												// click on chat tab button to return to normal
+												// make others convenient to work without a need to click on chat tab button, or check before proceed again
+												wxMediator.clickOnChatTabButton(headless)
+													.then((result) => {
+														if (result) {
+															logger.log('successfully clicked on chat tab button (for conveient of other components to proceed work)');
+															resolve(allContacts);
+														}
+														else {
+															logger.log('failed to click on chat tab button (for conveient of other components to proceed work)');
+															reject(false);
+														}
+													})
+													.catch((err) => {
+														logger.log('error trying to click on chat tab button (for conveient of other components to proceed work)');
+														reject(err);
+													});
 											})
 											.catch((err) => {
 												logger.log(err);
@@ -315,31 +332,26 @@ var _ = {
 										.then((foundAndClicked) => {
 											if (foundAndClicked) {
 												logger.log('clicked on filehelper');
-												resolve();
 											}
 											else {
-												reject(false);
+												logger.log('failed to click on filehelper');
 											}
 										})
 										.catch((err) => {
 											logger.log(err);
-											reject(err);
 										});
 								})
 								.catch((err) => {
 									logger.log(err);
-									reject(err);
 								});
 						})
 						.catch((err) => {
 							logger.log(err);
-							reject(err);
 						});
 				}
 			})
 			.catch((err) => { 
 				logger.log(err);
-				reject(err);
 			});
 	}
 };

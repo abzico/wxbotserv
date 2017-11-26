@@ -140,7 +140,18 @@ var _ = {
 	 * In case of there's error in parsing message or its context, that message will be skipped. At the end no matter what, it will return result array of messages.
 	 * @param  {Object} headless Headless object
 	 * @param {Number} n Number of message to get
-	 * @return {Object}          	Promise object. Success will return array of messages.
+	 * @return {Object}          	Promise object. Success will return array of messages. Individual message object is  
+	 * {  
+	 *  // context of message containing meta information about message itself
+	 * 	context: {  
+	 * 		type,	// <String>, type of message  
+	 * 		actualSender,   // <String>, actualSender of the message, or say WeChat ID  
+	 * 		msgType,  // <String>, message type  
+	 * 		subType,  // <String>, message sub-type  
+	 * 		msgId  	// <String>, message id  
+	 *  },  
+	 *  message  // <String>, actual message content  
+	 * }
 	 */
 	getLatestNMsg: function(headless, n) {
 		// supp;y n as parameter into evaluate function
@@ -150,7 +161,7 @@ var _ = {
 
 			// if there's no message
 			if (msgDivs.length <= 0) {
-				return [];
+				return 1;
 			}
 
 			// check to slice msgDivs
